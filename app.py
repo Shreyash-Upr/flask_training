@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, redirect, abort
 from models import db, EmployeeModel
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+
+# Use environment variable for DB URI (for better security)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data.db')  
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize DB
 db.init_app(app)
 
 # Create tables before the first request in Flask 2.x
@@ -35,13 +40,13 @@ def RetrieveEmployee(id):
     employee = EmployeeModel.query.filter_by(employee_id=id).first()
     if employee:
         return render_template('data.html', employee=employee)
-    return f"Employee with id = {id} Doesn't exist"
+    return f"Employee with id = {id} doesn't exist"
 
 @app.route('/data/<int:id>/update', methods=['GET', 'POST'])
 def update(id):
     employee = EmployeeModel.query.filter_by(employee_id=id).first()
     if not employee:
-        return f"Employee with id = {id} Does not exist"
+        return f"Employee with id = {id} does not exist"
 
     if request.method == 'POST':
         db.session.delete(employee)
@@ -71,4 +76,4 @@ def delete(id):
     return render_template('delete.html')
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
